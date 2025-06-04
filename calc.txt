@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculadora Stanley Invertido</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f4f4f4;
+      color: #333;
+    }
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    img.logo {
+      display: block;
+      margin: 0 auto 20px;
+      max-width: 300px;
+    }
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 10px;
+    }
+    input, select {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    button {
+      margin-top: 20px;
+      padding: 10px;
+      background: #005691;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .resultado {
+      margin-top: 20px;
+      background: #eef;
+      padding: 10px;
+      border-radius: 5px;
+      white-space: pre-line;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <img src="VSM logo.png" alt="Logo VSM" class="logo">
+    <h2>Calculadora Stanley Invertido</h2>
+
+    <label for="modelo">Modelo</label>
+    <select id="modelo">
+      <option value="252">BX-252/BX-253</option>
+      <option value="254">BX-254/BX-255</option>
+    </select>
+
+    <label for="x">Largura total do vão (X)</label>
+    <input type="number" id="x">
+
+    <label for="c">Altura total do vão (C)</label>
+    <input type="number" id="c">
+
+    <label for="nf">Número de folhas (NF)</label>
+    <input type="number" id="nf">
+
+    <label for="np">Número de folhas com acessórios (NP)</label>
+    <select id="np">
+      <option value="1">1</option>
+      <option value="2">2</option>
+    </select>
+
+    <label for="b">Tipo de acessório (B)</label>
+    <select id="b">
+      <option value="90">Somente Fechadura</option>
+      <option value="120">Fechadura + Puxador</option>
+    </select>
+
+    <label for="a">Tipo de perfil (A)</label>
+    <select id="a">
+      <option value="10">Com recorte</option>
+      <option value="15">Sem recorte</option>
+    </select>
+
+    <button onclick="calcular()">Calcular</button>
+    <button onclick="salvarPDF()">Salvar como PDF</button>
+
+    <div class="resultado" id="resultado"></div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script>
+    function calcular() {
+      const modelo = document.getElementById('modelo').value;
+      const X = parseFloat(document.getElementById('x').value);
+      const C = parseFloat(document.getElementById('c').value);
+      const NF = parseInt(document.getElementById('nf').value);
+      const NP = parseInt(document.getElementById('np').value);
+      const B = parseInt(document.getElementById('b').value);
+      const A = parseInt(document.getElementById('a').value);
+
+      if (isNaN(X) || isNaN(C) || isNaN(NF)) {
+        document.getElementById('resultado').innerText = 'Preencha todos os campos numéricos corretamente.';
+        return;
+      }
+
+      const NT = NF - 1;
+      const H = C - 20;
+
+      let resultado = `Altura da folha (H): (${H.toFixed(2)} mm)\n`;
+
+      if (modelo === '252') {
+        let L;
+        if (NP === 1) {
+          L = (X + (NT * 15) - A) / NF;
+        } else {
+          L = (X + (NT * 15) - (A * 2)) / NF;
+        }
+        resultado += `Largura das folhas (L): (${L.toFixed(2)} mm)`;
+
+      } else if (modelo === '254') {
+        const L1 = X + (NT * 20) - (2 * A);
+        const L2 = (L1 - (B * NP)) / NF;
+        const L3 = L2 + B;
+
+        resultado += `Pele de vidro total (L1): (${L1.toFixed(2)} mm)\n`;
+        resultado += `Folhas menores (L2): (${L2.toFixed(2)} mm)\n`;
+        resultado += `Folha(s) maior(es) (L3): (${L3.toFixed(2)} mm)`;
+      }
+
+      document.getElementById('resultado').innerText = resultado;
+    }
+
+    async function salvarPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+
+      doc.setFontSize(18);
+      doc.text("VSM - COMPONENTES PARA VIDRO TEMPERADO", 10, 15);
+      doc.setFontSize(14);
+      doc.text("Resultado da Calculadora Stanley Invertido:", 10, 30);
+
+      const resultado = document.getElementById('resultado').innerText;
+      const linhas = resultado.split('\n');
+      linhas.forEach((linha, index) => {
+        doc.text(linha, 10, 45 + index * 10);
+      });
+
+      doc.save("resultado-stanley-invertido.pdf");
+    }
+  </script>
+</body>
+</html>
